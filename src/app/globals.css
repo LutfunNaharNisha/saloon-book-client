@@ -1,0 +1,125 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+	:root {
+		--background: 30 45% 98%;
+		--foreground: 340 22% 15%;
+		--card: 0 0% 100%;
+		--card-foreground: 340 22% 15%;
+		--popover: 0 0% 100%;
+		--popover-foreground: 340 22% 15%;
+		--primary: 340 62% 32%;
+		--primary-foreground: 0 0% 100%;
+		--secondary: 34 40% 93%;
+		--secondary-foreground: 340 30% 22%;
+		--muted: 30 25% 94%;
+		--muted-foreground: 340 10% 43%;
+		--accent: 38 55% 90%;
+		--accent-foreground: 340 35% 20%;
+		--destructive: 0 72% 46%;
+		--destructive-foreground: 0 0% 100%;
+		--border: 30 22% 88%;
+		--input: 30 22% 86%;
+		--ring: 340 62% 40%;
+		--gold: 40 60% 52%;
+		--gold-foreground: 340 30% 12%;
+		--radius: 0.75rem;
+	}
+
+	.dark {
+		--background: 340 20% 7%;
+		--foreground: 32 30% 95%;
+		--card: 340 17% 10%;
+		--card-foreground: 32 30% 95%;
+		--popover: 340 17% 10%;
+		--popover-foreground: 32 30% 95%;
+		--primary: 340 62% 64%;
+		--primary-foreground: 340 30% 9%;
+		--secondary: 340 12% 15%;
+		--secondary-foreground: 32 25% 92%;
+		--muted: 340 10% 16%;
+		--muted-foreground: 32 12% 66%;
+		--accent: 38 28% 22%;
+		--accent-foreground: 38 55% 90%;
+		--destructive: 0 62% 52%;
+		--destructive-foreground: 0 0% 100%;
+		--border: 340 10% 19%;
+		--input: 340 10% 22%;
+		--ring: 340 62% 64%;
+		--gold: 40 55% 60%;
+		--gold-foreground: 340 30% 10%;
+	}
+}
+
+@layer base {
+	* {
+		@apply border-border;
+	}
+
+	html {
+		scroll-behavior: smooth;
+	}
+
+	body {
+		@apply bg-background text-foreground antialiased;
+	}
+
+	h1,
+	h2,
+	h3,
+	h4 {
+		@apply font-display tracking-tight;
+	}
+
+	::selection {
+		@apply bg-primary/20;
+	}
+}
+
+@layer components {
+	.section-shell {
+		@apply container py-14 md:py-20;
+	}
+
+	.eyebrow {
+		@apply text-xs font-semibold uppercase tracking-[0.25em] text-primary;
+	}
+
+	.hero-overlay {
+		background:
+			linear-gradient(
+				100deg,
+				hsl(340 30% 10% / 0.82) 0%,
+				hsl(340 30% 12% / 0.6) 45%,
+				hsl(340 25% 14% / 0.25) 100%
+			),
+			radial-gradient(
+				circle at 80% 20%,
+				hsl(40 60% 55% / 0.2),
+				transparent 45%
+			);
+	}
+
+	.card-hover {
+		@apply transition duration-300 hover:-translate-y-1 hover:shadow-xl hover:shadow-primary/10;
+	}
+
+	.glass-panel {
+		@apply border border-white/15 bg-white/10 backdrop-blur-md;
+	}
+}
+
+/* Slim scrollbars */
+::-webkit-scrollbar {
+	width: 10px;
+	height: 10px;
+}
+::-webkit-scrollbar-thumb {
+	background: hsl(var(--border));
+	border-radius: 999px;
+}
+::-webkit-scrollbar-thumb:hover {
+	background: hsl(var(--muted-foreground) / 0.5);
+}
