@@ -1,8 +1,35 @@
-export const API_URL =
-	process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
+const LOCAL_API_URL = "http://localhost:5000";
+const LOCAL_APP_URL = "http://localhost:3000";
 
-export const APP_URL =
-	process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
+// Public production origins of this project. They are only used when the
+// corresponding NEXT_PUBLIC_* variable is missing from the deployment. Keeping
+// them here prevents a production build from silently pointing at localhost
+// (which browsers block as mixed content / CORS failures).
+const PRODUCTION_API_URL = "https://saloon-book-server.vercel.app";
+const PRODUCTION_APP_URL = "https://saloon-book-client.vercel.app";
+
+const isProductionBuild = process.env.NODE_ENV === "production";
+
+const envUrl = (value: string | undefined) => {
+	const trimmed = value?.trim();
+	return trimmed ? trimmed.replace(/\/$/, "") : undefined;
+};
+
+const apiUrl =
+	envUrl(process.env.NEXT_PUBLIC_API_URL) ||
+	(isProductionBuild ? PRODUCTION_API_URL : LOCAL_API_URL);
+
+const appUrl =
+	envUrl(process.env.NEXT_PUBLIC_APP_URL) ||
+	(typeof window !== "undefined"
+		? window.location.origin
+		: isProductionBuild
+			? PRODUCTION_APP_URL
+			: LOCAL_APP_URL);
+
+export const API_URL = apiUrl;
+
+export const APP_URL = appUrl;
 
 export const GOOGLE_AUTH_ENABLED =
 	process.env.NEXT_PUBLIC_GOOGLE_AUTH_ENABLED === "true";

@@ -7,7 +7,12 @@ import { db, mongoClient } from "./db";
 
 // Better Auth lives only in this frontend app. The Express API verifies the
 // JWTs issued here and expects AUTH_URL to match this base URL.
-const baseURL = process.env.BETTER_AUTH_URL || APP_URL;
+const baseURL =
+	process.env.BETTER_AUTH_URL?.replace(/\/$/, "") ||
+	process.env.NEXT_PUBLIC_APP_URL?.replace(/\/$/, "") ||
+	(process.env.VERCEL_PROJECT_PRODUCTION_URL
+		? `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}`
+		: APP_URL);
 
 const googleClientId = process.env.GOOGLE_CLIENT_ID;
 const googleClientSecret = process.env.GOOGLE_CLIENT_SECRET;
