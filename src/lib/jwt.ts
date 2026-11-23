@@ -11,13 +11,28 @@ import { APP_URL } from "./constants";
  * Auth before attaching it to requests to the Express API.
  */
 
-const authUrl = (
-	process.env.BETTER_AUTH_URL ||
-	process.env.NEXT_PUBLIC_APP_URL ||
-	APP_URL
-)
-	.trim()
-	.replace(/\/$/, "");
+const LOCAL_AUTH_BASE_URL = "http://localhost:3000";
+
+const isLocalAuthBaseURL = (value?: string | null): boolean =>
+	typeof value === "string" &&
+	/^https?:\/\/(localhost|127\.0\.0\.1|\[::1\])(:\d+)?$/i.test(
+		value.trim().replace(/\/$/, ""),
+	);
+
+/**
+ * Same origin Better Auth issues tokens for. It must stay in sync with the
+ * base URL used when signing (see `lib/auth.ts`) - both sides must match the
+ * origin the Express API verifies against, otherwise every token is rejected.
+ */
+const authUrl =
+	[
+		process.env.BETTER_AUTH_URL,
+		process.env.NEXT_PUBLIC_APP_URL,
+		APP_URL,
+	]
+		.map((value) => value?.trim().replace(/\/$/, ""))
+		.find((value) => value && !isLocalAuthBaseURL(value)) ??
+	(process.env.NODE_ENV === "production" ? APP_URL : LOCAL_AUTH_BASE_URL);
 
 const jwksUrl = `${authUrl}/api/auth/jwks`;
 
@@ -29,6 +44,9 @@ const SUPPORTED_ALGORITHMS = [
 	"PS256",
 	"PS384",
 	"PS512",
+	"ES256",
+	"ES384",
+	"ES512",
 ] as const;
 
 type Jwk = JsonWebKey & { kid?: string };
@@ -98,7 +116,7 @@ const getSigningKey = async (token: string): Promise<KeyObject> => {
 	try {
 		return await getPublicKey(decoded.header.kid);
 	} catch {
-		// The signing key may have rotated since the last JWKS fetch.
+		// The signing key may have rotated since the JWKS fetch.
 		jwksRequest = null;
 		publicKeys.clear();
 		return getPublicKey(decoded.header.kid);

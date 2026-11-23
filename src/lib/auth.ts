@@ -5,14 +5,37 @@ import { jwt } from "better-auth/plugins";
 import { APP_URL } from "./constants";
 import { db, mongoClient } from "./db";
 
-// Better Auth lives only in this frontend app. The Express API verifies the
-// JWTs issued here and expects AUTH_URL to match this base URL.
+const LOCAL_AUTH_BASE_URL = "http://localhost:3000";
+
+const isLocalAuthBaseURL = (value?: string | null): boolean =>
+	typeof value === "string" &&
+	/^https?:\/\/(localhost|127\.0\.0\.1|\[::1\])(:\d+)?$/i.test(
+		value.trim().replace(/\/$/, ""),
+	);
+
+/**
+ * Better Auth lives only in this frontend app. The Express API verifies the
+ * JWTs issued here and expects AUTH_URL to match this base URL.
+ *
+ * The base URL is also the JWT issuer/audience, so a deployed frontend must
+ * resolve to the public client origin (for example
+ * `https://saloon-book-client.vercel.app`). Falling back to a local origin in a
+ * deployed build signs JWTs with `http://localhost:3000`, which the Express API
+ * then rejects with `401 Invalid or expired token`.
+ */
+const authBaseURL =
+	[
+		process.env.BETTER_AUTH_URL,
+		process.env.NEXT_PUBLIC_APP_URL,
+		process.env.VERCEL_PROJECT_PRODUCTION_URL
+			? `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}`
+			: APP_URL,
+	]
+		.map((value) => value?.trim().replace(/\/$/, ""))
+		.find((value) => value && !isLocalAuthBaseURL(value));
+
 const baseURL =
-	process.env.BETTER_AUTH_URL?.replace(/\/$/, "") ||
-	process.env.NEXT_PUBLIC_APP_URL?.replace(/\/$/, "") ||
-	(process.env.VERCEL_PROJECT_PRODUCTION_URL
-		? `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}`
-		: APP_URL);
+	authBaseURL ?? (process.env.NODE_ENV === "production" ? APP_URL : LOCAL_AUTH_BASE_URL);
 
 const googleClientId = process.env.GOOGLE_CLIENT_ID;
 const googleClientSecret = process.env.GOOGLE_CLIENT_SECRET;
