@@ -33,18 +33,25 @@ export const clearTokenCache = () => {
 	tokenCache = null;
 };
 
-const readExpiry = (token: string) => {
+/**
+ * The browser cannot run `jsonwebtoken` (it needs Node's crypto module), so it
+ * delegates verification to the Next.js route handler that uses the package.
+ * Once a token is verified it is cached until shortly before it expires.
+ */
+const verifyJwt = async (
+	token: string,
+): Promise<{ exp?: number | null } | null> => {
 	try {
-		const payload = JSON.parse(
-			atob(token.split(".")[1].replace(/-/g, "+").replace(/_/g, "/")),
-		);
-		if (typeof payload.exp === "number") {
-			return payload.exp * 1000 - 30_000;
-		}
+		const response = await fetch("/api/verify-token", {
+			headers: { Authorization: `Bearer ${token}` },
+			cache: "no-store",
+		});
+		if (!response.ok) return null;
+		const payload = await response.json().catch(() => null);
+		return payload?.success ? (payload.data ?? {}) : null;
 	} catch {
-		// ignore malformed tokens
+		return null;
 	}
-	return Date.now() + 5 * 60 * 1000;
 };
 
 const getJwt = async (): Promise<string | null> => {
@@ -62,8 +69,15 @@ const getJwt = async (): Promise<string | null> => {
 		const result = await client.token();
 		const token = result?.data?.token;
 		if (token) {
-			tokenCache = { token, expiresAt: readExpiry(token) };
-			return token;
+			const verified = await verifyJwt(token);
+			if (verified) {
+				const expiresAt =
+					typeof verified.exp === "number"
+						? verified.exp * 1000 - 30_000
+						: Date.now() + 5 * 60 * 1000;
+				tokenCache = { token, expiresAt };
+				return token;
+			}
 		}
 	} catch {
 		// The request will still be sent (without a token) so the API can

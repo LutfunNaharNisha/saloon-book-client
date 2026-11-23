@@ -86,7 +86,7 @@ Names only — no secret values are included here.
 - `STRIPE_SECRET_KEY`
 - `STRIPE_WEBHOOK_SECRET`
 
-Better Auth signs users in and issues JWTs in the frontend only; the Express API no longer hosts an auth handler or uses cookie sessions. Every protected endpoint requires `Authorization: Bearer <token>`: the API verifies the signature against the frontend's `/api/auth/jwks`, checks issuer/audience, re-reads the user's role and blocked state from MongoDB, then applies role checks. Frontend guards improve UX but are not a substitute for server authorization.
+Better Auth signs users in and issues JWTs in the frontend only; the Express API no longer hosts an auth handler or uses cookie sessions. Both apps verify tokens with the **`jsonwebtoken`** npm package: the frontend validates each new token through `GET /api/verify-token` (a Node.js route handler that uses the frontend's `/api/auth/jwks` public keys) before attaching it to requests, and the API verifies the signature against the same JWKS, checks issuer/audience, re-reads the user's role and blocked state from MongoDB, then applies role checks. Frontend guards improve UX but are not a substitute for server authorization.
 
 ## Live Website Link
 

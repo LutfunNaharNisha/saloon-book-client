@@ -66,8 +66,13 @@ export const auth = betterAuth({
 	},
 	plugins: [
 		// Exposes /api/auth/token (JWT issuance) and /api/auth/jwks (public keys).
-		// The backend validates these exact issuer/audience values.
-		jwt({ jwt: { issuer: baseURL, audience: baseURL } }),
+		// RS256 keeps the JWT verifiable by the backend's `jsonwebtoken` package
+		// (which has no EdDSA support). The backend validates these exact
+		// issuer/audience values against this JWKS endpoint.
+		jwt({
+			jwt: { issuer: baseURL, audience: baseURL },
+			jwks: { keyPairConfig: { alg: "RS256" } },
+		}),
 		// Forwards Better Auth's Set-Cookie headers to the Next.js cookie store.
 		nextCookies(),
 	],

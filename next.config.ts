@@ -1,7 +1,7 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-	serverExternalPackages: ["mongodb", "better-auth"],
+	serverExternalPackages: ["mongodb", "better-auth", "jsonwebtoken"],
 	images: {
 		remotePatterns: [
 			{ protocol: "https", hostname: "**" },
